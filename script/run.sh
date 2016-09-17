@@ -1,0 +1,1 @@
+java -jar /home/pi/opt/ehdcp.jar

@@ -1,2 +1,4 @@
-*/target/**
-*.class
+ehdcp-adc/src/main/resources/
+ehdcp-main/src/main/resources/
+target/
+.idea/

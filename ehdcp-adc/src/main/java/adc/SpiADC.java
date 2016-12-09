@@ -47,6 +47,8 @@ public class SpiADC {
 
     private static final double Vref = 2.5;
 
+    private static final int FULL_SCALE = (1 << 12) - 1;
+
     public byte getControlLow() {
         return controlLow;
     }
@@ -224,8 +226,8 @@ public class SpiADC {
     public double readChannel(int channel) throws IOException, ConversionException{
         spi.write(new byte[]{(byte)(controlHigh | (channel << 2)) , controlLow});
         byte[] result = spi.write(new byte[]{(byte)(controlHigh | (channel << 2)) , controlLow});
-        System.out.println(Util.tpBinary(result[0]));
-        System.out.println(Util.tpBinary(result[1]));
+     //   System.out.println(Util.tpBinary(result[0]));
+     //   System.out.println(Util.tpBinary(result[1]));
         int ch = (result[0]>>>4) & 0xf;
         int vv = (result[0] & 0b00001111)*256 + result[1];
         if (result[1] < 0)
@@ -275,10 +277,59 @@ public class SpiADC {
         return result;
     }
 
+    public short[] readAllRaw() throws IOException, ConversionException{
+        short result[] = new short[ADC_CHANNEL_COUNT];
+
+        spi.write(new byte[]{controlHigh, controlLow});
+        byte[] res = spi.write(new byte[]{(byte)(controlHigh | (1 << 2)) , controlLow});
+        short ch = (short)((res[0]>>>4) & 0xf);
+        short vv = (short)((res[0] & 0b00001111)*256 + res[1]);
+        if (res[1] < 0)
+            vv += 256;
+        if (ch != 0)
+            throw new ConversionException("Returned channel number is incorrect." +
+                    String.format(" Target chanel is %d, but returned %d", 0, ch));
+        result[0] = vv;
+
+        for (int i = 1; i < ADC_CHANNEL_COUNT; i++) {
+            res = spi.write(new byte[]{(byte)(controlHigh | ((i+1) << 2)) , controlLow});
+            ch = (short)((res[0]>>>4) & 0xf);
+            vv = (short)((res[0] & 0b00001111)*256 + res[1]);
+            if (res[1] < 0)
+                vv += 256;
+            if (ch != i)
+                throw new ConversionException("Returned channel number is incorrect." +
+                        String.format(" Target chanel is %d, but returned %d", i, ch));
+
+            result[i] = vv;
+
+        }
+        return result;
+    }
+
     public double[] readChannels(int channels[]) throws IOException, ConversionException{
         double result[] = new double[channels.length];
         for (int i = 0; i < channels.length; i++)
             result[channels[i]] = readChannel(channels[i]);
+        return result;
+    }
+
+    public double getVref() {
+        if ((controlLow & 0b00100000) == 0)
+            return 2* Vref;
+        return Vref;
+    }
+
+    public int getFllScale() {
+        return FULL_SCALE;
+    }
+
+    public double[] calibrate(short[] raw) {
+        double result[] = new double[raw.length];
+        double reference = getVref();
+        for (int i = 0; i<raw.length; i++)
+            result[i] = reference * raw[i] / FULL_SCALE;
+
         return result;
     }
 }

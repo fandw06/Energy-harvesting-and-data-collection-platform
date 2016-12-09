@@ -11,6 +11,9 @@
     <modules>
         <module>ehdcp-adc</module>
         <module>ehdcp-main</module>
+        <module>ehdcp-load</module>
+        <module>ehdcp-parser</module>
+        <module>ehdcp-control</module>
     </modules>
 
     <dependencies>
@@ -31,7 +34,12 @@
             <artifactId>influxdb-java</artifactId>
             <version>2.2</version>
         </dependency>
-
+        <!-- https://mvnrepository.com/artifact/commons-cli/commons-cli -->
+        <dependency>
+            <groupId>commons-cli</groupId>
+            <artifactId>commons-cli</artifactId>
+            <version>1.3.1</version>
+        </dependency>
     </dependencies>
 
 </project>

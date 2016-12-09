@@ -1,4 +1,7 @@
 ehdcp-adc/src/main/resources/
 ehdcp-main/src/main/resources/
+calibrated/
+input/
+output/
 target/
 .idea/
